@@ -44,7 +44,14 @@ def create_task():
 
 @task_bp.route("", methods=["GET"])
 def get_all():
-    tasks = Task.query.all()
+
+    title_query = request.args.get("sort")
+    if title_query == "asc":
+        task_query = Task.query.order_by(Task.title)
+    if title_query == "desc":
+        task_query = Task.query.order_by(Task.title.desc())
+
+    tasks = task_query.all()
     task_response = [task.to_dict() for task in tasks]
 
     return jsonify(task_response)
