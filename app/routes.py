@@ -2,11 +2,12 @@ from flask import Blueprint, jsonify, abort, make_response, request
 from app.models.task import Task
 from app import db
 from datetime import datetime
-
+import requests
+import os
 
 task_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
-
+#helper function
 def validate_model(cls, model_id):
     try:
         model_id = int(model_id)
@@ -97,6 +98,20 @@ def delete_task(task_id):
     return make_response(jsonify({"details" : f"Task 1 \"{task.title}\" successfully deleted"})), 200
 
 
+#helper function
+def post_to_slack(task):
+    URL = "https://slack.com/api/chat.postMessage"
+
+    params = {
+        "channel" : "task-notifications",
+        "text" : f"Someone just completed the task {task.title}"
+    }
+
+    headers = {"Authorization": os.environ.get("API_KEY")}
+
+    requests.post(URL, json=params, headers=headers)
+
+
 @task_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def mark_complete(task_id):
     task = validate_model(Task, task_id)
@@ -104,13 +119,16 @@ def mark_complete(task_id):
 
     db.session.commit()
 
+    post_to_slack(task)
+
     return {"task": {
     "id": task.task_id,
     "title": task.title,
     "description": task.description,
     "is_complete": True
     }
-}
+    }
+
 
 @task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
 def mark_incomplete(task_id):
