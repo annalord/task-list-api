@@ -119,8 +119,7 @@ def mark_complete(task_id):
     "title": task.title,
     "description": task.description,
     "is_complete": True
-    }
-    }
+    } }
 
 
 @task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
@@ -135,5 +134,4 @@ def mark_incomplete(task_id):
     "title": task.title,
     "description": task.description,
     "is_complete": False
-    }
-}
+    } }
