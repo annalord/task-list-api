@@ -78,14 +78,7 @@ def update_task(task_id):
 
     db.session.commit()
 
-    return make_response(jsonify({
-        "task": {
-            "id" : task.task_id,
-            "title" : task.title,
-            "description" : task.description,
-            "is_complete" : False
-        }
-    }), 200)
+    return jsonify({"task": task.to_dict()}), 200
 
 
 @task_bp.route("/<task_id>", methods=["DELETE"])
