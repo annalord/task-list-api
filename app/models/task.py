@@ -19,6 +19,9 @@ class Task(db.Model):
         if self.goal_id:
             task_dict["goal_id"] = self.goal_id
         
+        if self.completed_at:
+            task_dict["is_complete"] = True
+        
         return task_dict
 
     @classmethod

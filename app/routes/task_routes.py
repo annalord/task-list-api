@@ -21,30 +21,23 @@ def create_task():
     db.session.add(new_task)
     db.session.commit()
 
-    return make_response(jsonify({
-        "task": {
-            "id" : new_task.task_id,
-            "title" : new_task.title,
-            "description" : new_task.description,
-            "is_complete" : False
-        }
-    }), 201)
+    return make_response(jsonify(dict(task=new_task.to_dict())), 201)
 
 
 @bp.route("", methods=["GET"])
 def get_all():
     task_query = Task.query
-    title_query = request.args.get("sort")
+    sort_param = request.args.get("sort")
 
-    if title_query == "asc":
+    if sort_param == "asc":
         task_query = Task.query.order_by(Task.title)
-    if title_query == "desc":
+    if sort_param == "desc":
         task_query = Task.query.order_by(Task.title.desc())
 
     tasks = task_query.all()
     task_response = [task.to_dict() for task in tasks]
 
-    return jsonify(task_response)
+    return jsonify(task_response), 200
 
 
 @bp.route("/<task_id>", methods=["GET"])
@@ -87,7 +80,8 @@ def post_to_slack(task):
         "text" : f"Someone just completed the task {task.title}"
     }
 
-    headers = {"Authorization": os.environ.get("API_KEY")}
+    slack_token = os.environ.get("API_KEY")
+    headers = {"Authorization": f"Bearer {slack_token}" }
 
     requests.post(URL, json=params, headers=headers)
 
@@ -96,18 +90,15 @@ def post_to_slack(task):
 def mark_complete(task_id):
     task = validate_model(Task, task_id)
     task.completed_at = datetime.now()
+    task.is_complete = True
 
     db.session.commit()
 
     post_to_slack(task)
 
-    return {"task": {
-    "id": task.task_id,
-    "title": task.title,
-    "description": task.description,
-    "is_complete": True
-    } }
+    print(task.is_complete)
 
+    return make_response(jsonify(dict(task = task.to_dict())), 200)
 
 @bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
 def mark_incomplete(task_id):
@@ -116,9 +107,5 @@ def mark_incomplete(task_id):
 
     db.session.commit()
 
-    return {"task": {
-    "id": task.task_id,
-    "title": task.title,
-    "description": task.description,
-    "is_complete": False
-    } }
+    return make_response(jsonify(dict(task = task.to_dict())), 200)
+
