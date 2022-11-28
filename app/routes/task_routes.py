@@ -5,7 +5,7 @@ from datetime import datetime
 import requests
 import os
 
-task_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
+bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
 #helper function
 def validate_model(cls, model_id):
@@ -22,7 +22,7 @@ def validate_model(cls, model_id):
     return model
 
 
-@task_bp.route("", methods=["POST"])
+@bp.route("", methods=["POST"])
 def create_task():
     request_body = request.get_json()
 
@@ -44,7 +44,7 @@ def create_task():
     }), 201)
 
 
-@task_bp.route("", methods=["GET"])
+@bp.route("", methods=["GET"])
 def get_all():
     task_query = Task.query
     title_query = request.args.get("sort")
@@ -60,14 +60,14 @@ def get_all():
     return jsonify(task_response)
 
 
-@task_bp.route("/<task_id>", methods=["GET"])
+@bp.route("/<task_id>", methods=["GET"])
 def get_one_task(task_id):
     task = validate_model(Task, task_id)
 
     return jsonify({"task": task.to_dict()}), 200
 
 
-@task_bp.route("/<task_id>", methods=["PUT"])
+@bp.route("/<task_id>", methods=["PUT"])
 def update_task(task_id):
     task = validate_model(Task, task_id)
     request_body = request.get_json()
@@ -81,7 +81,7 @@ def update_task(task_id):
     return jsonify({"task": task.to_dict()}), 200
 
 
-@task_bp.route("/<task_id>", methods=["DELETE"])
+@bp.route("/<task_id>", methods=["DELETE"])
 def delete_task(task_id):
     task = validate_model(Task, task_id)
 
@@ -105,7 +105,7 @@ def post_to_slack(task):
     requests.post(URL, json=params, headers=headers)
 
 
-@task_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+@bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def mark_complete(task_id):
     task = validate_model(Task, task_id)
     task.completed_at = datetime.now()
@@ -122,7 +122,7 @@ def mark_complete(task_id):
     } }
 
 
-@task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+@bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
 def mark_incomplete(task_id):
     task = validate_model(Task, task_id)
     task.completed_at = None
