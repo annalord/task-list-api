@@ -52,9 +52,11 @@ def update_task(task_id):
     task = validate_model(Task, task_id)
     request_body = request.get_json()
 
+    if "title" not in request_body or "description" not in request_body:
+        abort(make_response({"details": "Invalid data"}, 400))
+
     task.title = request_body["title"]
     task.description = request_body["description"]
-    task.is_complete = False
 
     db.session.commit()
 

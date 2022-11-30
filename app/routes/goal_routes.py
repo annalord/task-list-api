@@ -18,12 +18,7 @@ def create_goal():
     db.session.add(new_goal)
     db.session.commit()
 
-    return make_response(jsonify(
-        {"goal": {
-            "id" : new_goal.goal_id,
-            "title" : new_goal.title
-        }}
-    ), 201) 
+    return make_response(jsonify({"goal" : new_goal.to_dict()}), 201)
 
 
 @bp.route("", methods=["GET"])
@@ -46,6 +41,9 @@ def get_one_goal(goal_id):
 def update_goal(goal_id):
     goal = validate_model(Goal, goal_id)
     request_body = request.get_json() 
+
+    if "title" not in request_body:
+        abort(make_response({"details": "Invalid data"}, 400))
 
     goal.title = request_body["title"]
 
@@ -78,7 +76,7 @@ def tasks_to_goal(goal_id):
 
     return jsonify({
         "id" : goal.goal_id,
-        "task_ids" : request_body["task_ids"]
+        "task_ids" : goal.task_ids()
     })
 
 
@@ -87,10 +85,7 @@ def get_tasks_of_goal(goal_id):
 
     goal = validate_model(Goal, goal_id)
 
-    goal_dict = {
-        "id": goal.goal_id,
-        "title": goal.title, 
-        "tasks" : [task.to_dict() for task in goal.tasks]
-    }
+    goal_dict = goal.to_dict()
+    goal_dict["tasks"] = [task.to_dict() for task in goal.tasks]
 
     return jsonify(goal_dict)
